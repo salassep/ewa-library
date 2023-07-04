@@ -1,14 +1,13 @@
-name: ewa_library
-description: A starting point for Dart libraries or applications.
+name: ewa
+description: a library for securing data by embedding it in an audio using a combination of EAS and AES.
 version: 1.0.0
-# repository: https://github.com/my_org/my_repo
+repository: https://github.com/salassep/ewa-library.git
 
 environment:
   sdk: ^3.0.1
 
-# Add regular dependencies here.
-dependencies:
-  # path: ^1.8.0
+dependencies: 
+  encrypt: ^5.0.1
 
 dev_dependencies:
   lints: ^2.0.0
