@@ -1,32 +1,33 @@
+import 'dart:typed_data';
 import 'package:encrypt/encrypt.dart';
 
 class AesCbc {
 
-  String encrypt ({
-    required String plainText,
+  Uint8List encrypt ({
+    required List<int> message,
     required String secretKey,
     required String iv
   }){
     final Key convertedSecretKey = Key.fromUtf8(secretKey);
     final IV convertedIv = IV.fromUtf8(iv);
     final Encrypter encrypter = Encrypter(AES(convertedSecretKey, mode: AESMode.cbc));
-    final Encrypted encrypted = encrypter.encrypt(plainText, iv:convertedIv);
+    final Encrypted encrypted = encrypter.encryptBytes(message, iv:convertedIv);
 
-    return encrypted.base64;
+    return encrypted.bytes;
   }
 
-  String decrypt({
-    required String cipherText,
+  List<int> decrypt({
+    required Uint8List cipher,
     required String secretKey,
     required String iv
   }){
     final Key convertedSecretKey = Key.fromUtf8(secretKey);
     final IV convertedIv = IV.fromUtf8(iv);
-    final Encrypted convertedCipherText = Encrypted.from64(cipherText);
+    final Encrypted convertedCipher = Encrypted(cipher);
     final Encrypter decrypter = Encrypter(AES(convertedSecretKey, mode: AESMode.cbc));
 
     try {
-      final String decrypted = decrypter.decrypt(convertedCipherText, iv: convertedIv);
+      final List<int> decrypted = decrypter.decryptBytes(convertedCipher, iv: convertedIv);
       return decrypted;
     } on ArgumentError {
       throw ArgumentError('Wrong secret key');
