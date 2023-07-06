@@ -3,6 +3,7 @@ import 'package:encrypt/encrypt.dart';
 
 class AesCbc {
 
+  /// Encrypt data using AES CBC
   Uint8List encrypt ({
     required List<int> message,
     required String secretKey,
@@ -16,6 +17,7 @@ class AesCbc {
     return encrypted.bytes;
   }
 
+  /// Decrypt data using AES CBC
   List<int> decrypt({
     required Uint8List cipher,
     required String secretKey,
@@ -26,6 +28,7 @@ class AesCbc {
     final Encrypted convertedCipher = Encrypted(cipher);
     final Encrypter decrypter = Encrypter(AES(convertedSecretKey, mode: AESMode.cbc));
 
+    // Throwing error when secret key wrong
     try {
       final List<int> decrypted = decrypter.decryptBytes(convertedCipher, iv: convertedIv);
       return decrypted;
