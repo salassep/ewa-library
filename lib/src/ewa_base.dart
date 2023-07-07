@@ -77,7 +77,7 @@ class Ewa {
     final List<int> embeddedSong = eas.embed(audioCoverBytes: audioCoverBytes , dataToHide: paddedDataString);
 
     // Crete file with the specified path and the name formatted as WAV
-    await File('${targetPath}stego.wav').writeAsBytes(Separator.separateBytesDataFromExtension(embeddedSong));
+    await File('${targetPath}stego.wav').writeAsBytes(embeddedSong);
 
     return embeddedSong;
   }
