@@ -1,8 +1,5 @@
-/// Support for doing something awesome.
-///
-/// More dartdocs go here.
 library ewa;
 
+export 'src/ewa_base.dart';
 export 'src/aes.dart';
-
-// TODO: Export any libraries intended for clients of this package.
+export 'src/eas.dart';
