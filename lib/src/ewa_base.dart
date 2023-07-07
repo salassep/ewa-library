@@ -6,6 +6,7 @@ import 'package:path/path.dart';
 import 'utils/separator.dart';
 import 'eas.dart';
 
+/// Eas with Aes
 class Ewa {
 
   /// Get audio cover capacity in number of bytes.
