@@ -9,8 +9,8 @@ class AesCbc {
     required String secretKey,
     required String iv
   }){
-    final Key convertedSecretKey = Key.fromUtf8(secretKey);
-    final IV convertedIv = IV.fromUtf8(iv);
+    final Key convertedSecretKey = Key.fromUtf8(_validateSecretKey(secretKey));
+    final IV convertedIv = IV.fromUtf8(_validateIv(iv));
     final Encrypter encrypter = Encrypter(AES(convertedSecretKey, mode: AESMode.cbc));
     final Encrypted encrypted = encrypter.encryptBytes(message, iv:convertedIv);
 
@@ -23,8 +23,8 @@ class AesCbc {
     required String secretKey,
     required String iv
   }){
-    final Key convertedSecretKey = Key.fromUtf8(secretKey);
-    final IV convertedIv = IV.fromUtf8(iv);
+    final Key convertedSecretKey = Key.fromUtf8(_validateSecretKey(secretKey));
+    final IV convertedIv = IV.fromUtf8(_validateIv(iv));
     final Encrypted convertedCipher = Encrypted(cipher);
     final Encrypter decrypter = Encrypter(AES(convertedSecretKey, mode: AESMode.cbc));
 
@@ -36,4 +36,29 @@ class AesCbc {
       throw ArgumentError('Wrong secret key');
     }
   }
+
+  /// Validate the secret key, if it does not meet the specified character count (16, 24, or 32),
+  /// padding will be added (using pkcs7).
+  String _validateSecretKey(String secretKey) {
+
+    if (secretKey.length == 16 || secretKey.length == 24 || secretKey.length == 32) return secretKey;
+
+    int padCount;
+
+    final int secretKeyLength = secretKey.length;
+
+    if (secretKeyLength < 16) {
+      padCount = 16;
+    } else if (secretKeyLength < 24) {
+      padCount = 24;
+    } else {
+      padCount = 32;
+    }
+
+    return secretKey.padRight(padCount, '${padCount - secretKeyLength}');
+  }
+
+  /// Validate the initialization vector, if the character count is less than 16,
+  /// padding will be added (using pkcs7).
+  String _validateIv(String iv) => iv.length == 16 ? iv : iv.padRight(16, '${16 - iv.length}');
 }
