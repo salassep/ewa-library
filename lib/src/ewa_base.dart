@@ -2,9 +2,9 @@ import 'dart:convert';
 import 'dart:io';
 import 'dart:typed_data';
 import 'aes.dart';
-import 'gzip_compression.dart';
+import 'utils/gzip_compression.dart';
 import 'package:path/path.dart';
-import 'separator.dart';
+import 'utils/separator.dart';
 import 'eas.dart';
 
 void encryptEmbed() async {
@@ -63,32 +63,10 @@ void extractDecrypt() async {
     .writeAsBytes(decompressedData.sublist(Separator.getSeparatorIndex(decodedData) + Separator.separatorWord.length));
 }
 
-int getSeparatorIndex(List<int> data, List separatorList) {
-  for (var i = 0; i < data.length; i++) {
-    bool isEqual = areListsEqual(data.sublist(i, i + separatorList.length) , separatorList);
-    if (isEqual) return i;
-  }
-
-  return -1; // Return -1 if the separatorList is not found in data.
+int getSeparatorIndex() {
+ // Return -1 if the separatorList is not found in data.
 }
 
-bool areListsEqual(var list1, var list2) {
-    // check if both are lists
-    if(!(list1 is List && list2 is List)
-        // check if both have same length
-        || list1.length!=list2.length) {
-        return false;
-    }
-     
-    // check if elements are equal
-    for(int i=0;i<list1.length;i++) {
-        if(list1[i]!=list2[i]) {
-            return false;
-        }
-    }
-     
-    return true;
-}
 
 
 void main() async {
