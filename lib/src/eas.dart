@@ -1,4 +1,3 @@
-import 'dart:io';
 import 'dart:typed_data';
 
 class Eas {
@@ -18,16 +17,14 @@ class Eas {
   
   /// To obtain the audio capacity that will be used for the cover
   /// and return the amount of capacity in bits.
-  Future<int> getAudioCapacity(File audioCover) async{
-    final Uint8List audioCoverBytes = await audioCover.readAsBytes();
+  int getAudioCapacity(Uint8List audioCoverBytes) {
     final List<int> selectiveBytesIndex = _getSelectiveBytesIndex(audioCoverBytes);
 
     return selectiveBytesIndex.length;    
   }
 
   /// Embed data to audio cover
-  Future<List<int>> embed({required File audioCover, required String dataToHide}) async {
-    final Uint8List audioCoverBytes = await audioCover.readAsBytes();
+  List<int> embed({required Uint8List audioCoverBytes, required String dataToHide}) {
 
     // change fileBytes from uint8list to list<int>, so it can be modified
     final List<int> convertedAudioCoverBytes = List<int>.from(audioCoverBytes);
@@ -47,8 +44,7 @@ class Eas {
   }
 
   /// Extract data from an audio
-  Future<List<int>> extract(File audioCover) async {
-    final Uint8List audioCoverBytes = await audioCover.readAsBytes();
+  List<int> extract(Uint8List audioCoverBytes) {
 
     // Change fileBytes from uint8list to list<int>, so it can be modified~
     final List<int> convertedAudioCoverBytes = List<int>.from(audioCoverBytes);
