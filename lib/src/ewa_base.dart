@@ -76,13 +76,13 @@ class Ewa {
     // Embed data to audio cover.
     final List<int> embeddedSong = eas.embed(audioCoverBytes: audioCoverBytes , dataToHide: paddedDataString);
 
-    // Crete file with the specified path and the name formatted as WAV
+    // Crete file with the specified path and the name formatted as WAV.
     await File('${targetPath}stego.wav').writeAsBytes(embeddedSong);
 
     return embeddedSong;
   }
 
-  /// Extract data form audio cover, and decrypt it
+  /// Extract data form audio cover, and decrypt it.
   Future<List<int>> extractDecrypt({
     required File audioCover, 
     required String secretKey,
@@ -112,14 +112,21 @@ class Ewa {
     // Decrypt.
     final List<int> decryptedData = aesCbc.decrypt(cipher: Uint8List.fromList(separatedExtractData), secretKey: secretKey, iv: iv);
 
-    // Decompress data.
-    final List<int> decompressedData = GzipCompression.decompress(decryptedData);
+    // If there is an error in the process below, the most likely cause is an incorrect initialization vector,
+    // resulting in random data from the decryption process.
+    try {
+      // Decompress data.
+      final List<int> decompressedData = GzipCompression.decompress(decryptedData);
+  
+      final String fileExtensionAfterProcess = Separator.getFileExtension(decompressedData);
+      
+      // Crete file with the specified path and the name formatted as WAV.
+      await File('${targetPath}result.$fileExtensionAfterProcess').writeAsBytes(Separator.separateBytesDataFromExtension(decompressedData));
+      
+      return decompressedData;
 
-    final String fileExtensionAfterProcess = Separator.getFileExtension(decompressedData);
-
-    // Crete file with the specified path and the name formatted as WAV
-    await File('${targetPath}result.$fileExtensionAfterProcess').writeAsBytes(Separator.separateBytesDataFromExtension(decompressedData));
-
-    return decompressedData;
+    } on Exception {
+      throw Exception('Failed to get data, check the initialization vector');
+    }
   }
 }
