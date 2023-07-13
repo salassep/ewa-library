@@ -1,6 +1,6 @@
 name: ewa
 description: a library for securing data by embedding it in an audio using a combination of EAS and AES.
-version: 1.0.0
+version: 1.1.0
 repository: https://github.com/salassep/ewa-library.git
 
 environment:

@@ -26,6 +26,47 @@ class Ewa {
     return separatorIndex >= 0;
   }
 
+  /// Get estimate size of the data to be embedded, return number of bits
+  Future<int> getDataToEmbedEstimateSize({
+    required File secretFile,
+    required String secretKey,
+    required String iv
+  }) async {
+    final AesCbc aesCbc = AesCbc();
+    final String secretFileExtension = basename(secretFile.path).split('.').last;
+    final Uint8List secretFileBytes = await secretFile.readAsBytes();
+
+    // change fileBytes from uint8list to list<int>, so it can be modified.
+    final List<int> convertedSecretFileBytes = List<int>.from(secretFileBytes);
+
+    final List<int> fileExtensionSeparatorBytes = Separator.getSeparatorWithFileExtensionInBytes(secretFileExtension);
+
+    // Insert extension and separator to file bytes.
+    convertedSecretFileBytes.insertAll(0, fileExtensionSeparatorBytes);
+
+    // Compress data.
+    final List<int> compressedData = GzipCompression.compress(convertedSecretFileBytes);
+    
+    // Encrypt data.
+    final Uint8List encryptedData = aesCbc.encrypt(message: compressedData, secretKey: secretKey, iv: iv);
+
+    final List<int> convertedEncryptedData = List<int>.from(encryptedData);
+
+    // Insert bytes separator.
+    convertedEncryptedData.addAll(Separator.getSeparatorInBytes());
+
+    // To convert data into 8 bit binary.
+    List<String> paddedData = <String>[];
+    for (var i in convertedEncryptedData) {
+      paddedData.add(i.toRadixString(2).padLeft(8, '0'));
+    }
+
+    // Change data 8 bit binary to one string.
+    final String paddedDataString = paddedData.join('');
+
+    return paddedDataString.length;
+  }
+
   /// Encrypt the data and then embed it into the audio cover.
   Future<List<int>> encryptEmbed({
     required File secretFile,
