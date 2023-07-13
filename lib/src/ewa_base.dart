@@ -9,7 +9,7 @@ import 'eas.dart';
 /// Eas with Aes
 class Ewa {
 
-  /// Get audio cover capacity in number of bytes.
+  /// Get audio cover capacity in number of bits.
   Future<int> getAudioCoverCapacity(File audioCover) async {
     final Uint8List audioCoverBytes = await audioCover.readAsBytes();
 
