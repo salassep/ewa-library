@@ -160,11 +160,12 @@ class Ewa {
       final List<int> decompressedData = GzipCompression.decompress(decryptedData);
   
       final String fileExtensionAfterProcess = Separator.getFileExtension(decompressedData);
+      final List<int> fileBytesWithoutExtension = Separator.separateBytesDataFromExtension(decompressedData);
       
-      // Crete file with the specified path and the name formatted as WAV.
-      await File('${targetPath}result.$fileExtensionAfterProcess').writeAsBytes(Separator.separateBytesDataFromExtension(decompressedData));
+      // Create file with the specified path and the name formatted as WAV.
+      await File('${targetPath}result.$fileExtensionAfterProcess').writeAsBytes(fileBytesWithoutExtension);
       
-      return decompressedData;
+      return fileBytesWithoutExtension;
 
     } on Exception {
       throw Exception('Failed to get data, check the initialization vector');
