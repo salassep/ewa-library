@@ -11,64 +11,63 @@ class Ewa {
 
   /// Get audio cover capacity in number of bits.
   Future<int> getAudioCoverCapacity(File audioCover) async {
-    final Uint8List audioCoverBytes = await audioCover.readAsBytes();
-
-    return Eas().getAudioCapacity(audioCoverBytes);
+    final int audioCapacity = await Eas().getAudioCapacity(audioCover);
+    return audioCapacity;
   }
 
   /// Check data in audio cover, if there is data then return true,
   /// otherwise return false.
-  Future<bool> checkDataInAudioCover(File audioCover) async {
-    final Uint8List audioCoverBytes = await audioCover.readAsBytes();
-    final List<int> extractedBytes = Eas().extract(audioCoverBytes);
-    final int separatorIndex = Separator.getSeparatorIndex(extractedBytes);
+  // Future<bool> checkDataInAudioCover(File audioCover) async {
+  //   final Uint8List audioCoverBytes = await audioCover.readAsBytes();
+  //   final List<int> extractedBytes = Eas().extract(audioCoverBytes);
+  //   final int separatorIndex = Separator.getSeparatorIndex(extractedBytes);
 
-    return separatorIndex >= 0;
-  }
+  //   return separatorIndex >= 0;
+  // }
 
   /// Get estimate size of the data to be embedded, return number of bits
-  Future<int> getDataToEmbedEstimateSize({
-    required File secretFile,
-    required String secretKey,
-    required String iv
-  }) async {
-    final AesCbc aesCbc = AesCbc();
-    final String secretFileExtension = basename(secretFile.path).split('.').last;
-    final Uint8List secretFileBytes = await secretFile.readAsBytes();
+  // Future<int> getDataToEmbedEstimateSize({
+  //   required File secretFile,
+  //   required String secretKey,
+  //   required String iv
+  // }) async {
+  //   final AesCbc aesCbc = AesCbc();
+  //   final String secretFileExtension = basename(secretFile.path).split('.').last;
+  //   final Uint8List secretFileBytes = await secretFile.readAsBytes();
 
-    // change fileBytes from uint8list to list<int>, so it can be modified.
-    final List<int> convertedSecretFileBytes = List<int>.from(secretFileBytes);
+  //   // change fileBytes from uint8list to list<int>, so it can be modified.
+  //   final List<int> convertedSecretFileBytes = List<int>.from(secretFileBytes);
 
-    final List<int> fileExtensionSeparatorBytes = Separator.getSeparatorWithFileExtensionInBytes(secretFileExtension);
+  //   final List<int> fileExtensionSeparatorBytes = Separator.getSeparatorWithFileExtensionInBytes(secretFileExtension);
 
-    // Insert extension and separator to file bytes.
-    convertedSecretFileBytes.insertAll(0, fileExtensionSeparatorBytes);
+  //   // Insert extension and separator to file bytes.
+  //   convertedSecretFileBytes.insertAll(0, fileExtensionSeparatorBytes);
 
-    // Compress data.
-    final List<int> compressedData = GzipCompression.compress(convertedSecretFileBytes);
+  //   // Compress data.
+  //   final List<int> compressedData = GzipCompression.compress(convertedSecretFileBytes);
     
-    // Encrypt data.
-    final Uint8List encryptedData = aesCbc.encrypt(message: compressedData, secretKey: secretKey, iv: iv);
+  //   // Encrypt data.
+  //   final Uint8List encryptedData = aesCbc.encrypt(message: compressedData, secretKey: secretKey, iv: iv);
 
-    final List<int> convertedEncryptedData = List<int>.from(encryptedData);
+  //   final List<int> convertedEncryptedData = List<int>.from(encryptedData);
 
-    // Insert bytes separator.
-    convertedEncryptedData.addAll(Separator.getSeparatorInBytes());
+  //   // Insert bytes separator.
+  //   convertedEncryptedData.addAll(Separator.getSeparatorInBytes());
 
-    // To convert data into 8 bit binary.
-    List<String> paddedData = <String>[];
-    for (var i in convertedEncryptedData) {
-      paddedData.add(i.toRadixString(2).padLeft(8, '0'));
-    }
+  //   // To convert data into 8 bit binary.
+  //   List<String> paddedData = <String>[];
+  //   for (var i in convertedEncryptedData) {
+  //     paddedData.add(i.toRadixString(2).padLeft(8, '0'));
+  //   }
 
-    // Change data 8 bit binary to one string.
-    final String paddedDataString = paddedData.join('');
+  //   // Change data 8 bit binary to one string.
+  //   final String paddedDataString = paddedData.join('');
 
-    return paddedDataString.length;
-  }
+  //   return paddedDataString.length;
+  // }
 
   /// Encrypt the data and then embed it into the audio cover.
-  Future<List<int>> encryptEmbed({
+  Future<File> encryptEmbed({
     required File secretFile,
     required File audioCover, 
     required String secretKey,
@@ -84,8 +83,6 @@ class Ewa {
     // compared to other formats.
     if (basename(audioCover.path).split('.').last != 'wav') throw Exception('Audio cover must be WAV file');
 
-    final Uint8List audioCoverBytes = await audioCover.readAsBytes();
-
     // change fileBytes from uint8list to list<int>, so it can be modified.
     final List<int> convertedSecretFileBytes = List<int>.from(secretFileBytes);
 
@@ -114,11 +111,10 @@ class Ewa {
     // Change data 8 bit binary to one string.
     final String paddedDataString = paddedData.join('');
 
-    // Embed data to audio cover.
-    final List<int> embeddedSong = eas.embed(audioCoverBytes: audioCoverBytes , dataToHide: paddedDataString);
+    print(paddedDataString);
 
-    // Crete file with the specified path and the name formatted as WAV.
-    await File('${targetPath}stego.wav').writeAsBytes(embeddedSong);
+    // Embed data to audio cover.
+    final File embeddedSong = await eas.embed(audioCover: audioCover , dataToHide: paddedDataString);
 
     return embeddedSong;
   }
@@ -137,38 +133,38 @@ class Ewa {
     // compared to other formats.
     if (basename(audioCover.path).split('.').last != 'wav') throw Exception('Audio cover must be wav file');
 
-    final Uint8List audioCoverBytes = await audioCover.readAsBytes();
-
     // Extract data from audio cover.
-    final List<int> extractedData = eas.extract(audioCoverBytes);
+    final List<int> extractedData = await eas.extract(audioCover);
 
-    final int separatorIndex = Separator.getSeparatorIndex(extractedData);
+    return extractedData;
 
-    // If data not found in audio cover, throw an error.
-    if (separatorIndex < 0) throw Exception('Data not found within the audio cover');
+    // final int separatorIndex = Separator.getSeparatorIndex(extractedData);
 
-    // Separate data bytes from the byes that are not part of the data.
-    final List<int> separatedExtractData = Separator.separateBytesData(extractedData, separatorIndex);
+    // // If data not found in audio cover, throw an error.
+    // if (separatorIndex < 0) throw Exception('Data not found within the audio cover');
 
-    // Decrypt.
-    final List<int> decryptedData = aesCbc.decrypt(cipher: Uint8List.fromList(separatedExtractData), secretKey: secretKey, iv: iv);
+    // // Separate data bytes from the byes that are not part of the data.
+    // final List<int> separatedExtractData = Separator.separateBytesData(extractedData, separatorIndex);
 
-    // If there is an error in the process below, the most likely cause is an incorrect initialization vector,
-    // resulting in random data from the decryption process.
-    try {
-      // Decompress data.
-      final List<int> decompressedData = GzipCompression.decompress(decryptedData);
+    // // Decrypt.
+    // final List<int> decryptedData = aesCbc.decrypt(cipher: Uint8List.fromList(separatedExtractData), secretKey: secretKey, iv: iv);
+
+    // // If there is an error in the process below, the most likely cause is an incorrect initialization vector,
+    // // resulting in random data from the decryption process.
+    // try {
+    //   // Decompress data.
+    //   final List<int> decompressedData = GzipCompression.decompress(decryptedData);
   
-      final String fileExtensionAfterProcess = Separator.getFileExtension(decompressedData);
-      final List<int> fileBytesWithoutExtension = Separator.separateBytesDataFromExtension(decompressedData);
+    //   final String fileExtensionAfterProcess = Separator.getFileExtension(decompressedData);
+    //   final List<int> fileBytesWithoutExtension = Separator.separateBytesDataFromExtension(decompressedData);
       
-      // Create file with the specified path and the name formatted as WAV.
-      await File('${targetPath}result.$fileExtensionAfterProcess').writeAsBytes(fileBytesWithoutExtension);
+    //   // Create file with the specified path and the name formatted as WAV.
+    //   await File('${targetPath}result.$fileExtensionAfterProcess').writeAsBytes(fileBytesWithoutExtension);
       
-      return fileBytesWithoutExtension;
+    //   return fileBytesWithoutExtension;
 
-    } on Exception {
-      throw Exception('Failed to get data, check the initialization vector');
-    }
+    // } on Exception {
+    //   throw Exception('Failed to get data, check the initialization vector');
+    // }
   }
 }
