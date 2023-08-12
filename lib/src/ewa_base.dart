@@ -17,54 +17,51 @@ class Ewa {
 
   /// Check data in audio cover, if there is data then return true,
   /// otherwise return false.
-  // Future<bool> checkDataInAudioCover(File audioCover) async {
-  //   final Uint8List audioCoverBytes = await audioCover.readAsBytes();
-  //   final List<int> extractedBytes = Eas().extract(audioCoverBytes);
-  //   final int separatorIndex = Separator.getSeparatorIndex(extractedBytes);
-
-  //   return separatorIndex >= 0;
-  // }
+  Future<bool> isDataExist(File audioCover) async {
+    final bool isDataExist = await Eas().isDataExist(audioCover);
+    return isDataExist;
+  }
 
   /// Get estimate size of the data to be embedded, return number of bits
-  // Future<int> getDataToEmbedEstimateSize({
-  //   required File secretFile,
-  //   required String secretKey,
-  //   required String iv
-  // }) async {
-  //   final AesCbc aesCbc = AesCbc();
-  //   final String secretFileExtension = basename(secretFile.path).split('.').last;
-  //   final Uint8List secretFileBytes = await secretFile.readAsBytes();
+  Future<int> getDataToEmbedEstimateSize({
+    required File secretFile,
+    required String secretKey,
+    required String iv
+  }) async {
+    final AesCbc aesCbc = AesCbc();
+    final String secretFileExtension = basename(secretFile.path).split('.').last;
+    final Uint8List secretFileBytes = await secretFile.readAsBytes();
 
-  //   // change fileBytes from uint8list to list<int>, so it can be modified.
-  //   final List<int> convertedSecretFileBytes = List<int>.from(secretFileBytes);
+    // change fileBytes from uint8list to list<int>, so it can be modified.
+    final List<int> convertedSecretFileBytes = List<int>.from(secretFileBytes);
 
-  //   final List<int> fileExtensionSeparatorBytes = Separator.getSeparatorWithFileExtensionInBytes(secretFileExtension);
+    final List<int> fileExtensionSeparatorBytes = Separator.getSeparatorWithFileExtensionInBytes(secretFileExtension);
 
-  //   // Insert extension and separator to file bytes.
-  //   convertedSecretFileBytes.insertAll(0, fileExtensionSeparatorBytes);
+    // Insert extension and separator to file bytes.
+    convertedSecretFileBytes.insertAll(0, fileExtensionSeparatorBytes);
 
-  //   // Compress data.
-  //   final List<int> compressedData = GzipCompression.compress(convertedSecretFileBytes);
+    // Compress data.
+    final List<int> compressedData = GzipCompression.compress(convertedSecretFileBytes);
     
-  //   // Encrypt data.
-  //   final Uint8List encryptedData = aesCbc.encrypt(message: compressedData, secretKey: secretKey, iv: iv);
+    // Encrypt data.
+    final Uint8List encryptedData = aesCbc.encrypt(message: compressedData, secretKey: secretKey, iv: iv);
 
-  //   final List<int> convertedEncryptedData = List<int>.from(encryptedData);
+    final List<int> convertedEncryptedData = List<int>.from(encryptedData);
 
-  //   // Insert bytes separator.
-  //   convertedEncryptedData.addAll(Separator.getSeparatorInBytes());
+    // Insert bytes separator.
+    convertedEncryptedData.addAll(Separator.getSeparatorInBytes());
 
-  //   // To convert data into 8 bit binary.
-  //   List<String> paddedData = <String>[];
-  //   for (var i in convertedEncryptedData) {
-  //     paddedData.add(i.toRadixString(2).padLeft(8, '0'));
-  //   }
+    // To convert data into 8 bit binary.
+    List<String> paddedData = <String>[];
+    for (var i in convertedEncryptedData) {
+      paddedData.add(i.toRadixString(2).padLeft(8, '0'));
+    }
 
-  //   // Change data 8 bit binary to one string.
-  //   final String paddedDataString = paddedData.join('');
+    // Change data 8 bit binary to one string.
+    final String paddedDataString = paddedData.join('');
 
-  //   return paddedDataString.length;
-  // }
+    return paddedDataString.length;
+  }
 
   /// Encrypt the data and then embed it into the audio cover.
   Future<File> encryptEmbed({
@@ -113,7 +110,11 @@ class Ewa {
     final String paddedDataString = paddedData.join('');
 
     // Embed data to audio cover.
-    final File embeddedSong = await eas.embed(audioCover: audioCover , dataToHide: paddedDataString);
+    final File embeddedSong = await eas.embed(
+      audioCover: audioCover , 
+      dataToHide: paddedDataString, 
+      targetPath: targetPath
+    );
 
     return embeddedSong;
   }

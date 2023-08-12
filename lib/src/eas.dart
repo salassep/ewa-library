@@ -42,7 +42,7 @@ class Eas {
   }
 
   /// Embed data to audio cover
-  Future<File> embed({required File audioCover, required String dataToHide}) async {
+  Future<File> embed({required File audioCover, required String dataToHide, required String targetPath}) async {
 
     if (await getAudioCapacity(audioCover) < dataToHide.length) {
       throw Exception('Audio doesn\'t have enough capacity');
@@ -53,7 +53,7 @@ class Eas {
     // and if the data is 0, the selective bytes are set to 254.
     int dataToHideIndex = 0;
 
-    final outputFile = File('stego.wav');
+    final outputFile = File('$targetPath/stego.wav');
     var outputSink = outputFile.openWrite();
 
     await for (var chunk in audioCover.openRead()) {
@@ -69,7 +69,7 @@ class Eas {
       outputSink.add(chunk);
     }
 
-    await outputSink.flush();
+    // await outputSink.flush();
     await outputSink.close();
 
     return outputFile;
@@ -95,29 +95,26 @@ class Eas {
 
       for (var i = 0; i < chunk.length; i++) {
 
-        if (chunk[i] < 254) {
-          continue;
-        }
-
-        if (selectiveBytes.isNotEmpty && selectiveBytes[selectiveBytes.length - 1].length < 8) {
-          if (chunk[i] == 254) {
-            selectiveBytes[selectiveBytes.length - 1] += '0';
+        if (chunk[i] >= 254) {
+          if (selectiveBytes.isNotEmpty && selectiveBytes[selectiveBytes.length - 1].length < 8) {
+            if (chunk[i] == 254) {
+              selectiveBytes[selectiveBytes.length - 1] += '0';
+            } else {
+              selectiveBytes[selectiveBytes.length - 1] += '1';
+            }
           } else {
-            selectiveBytes[selectiveBytes.length - 1] += '1';
-          }
-        } else {
-          if (selectiveBytes.join('').contains(separatorBytes)){
-            if (selectiveBytes.join('').length != separatorBytes.length) {
+            if (selectiveBytes.join('').lastIndexOf(separatorBytes) > 0){
               separatorBytesFound = true;
               break;
             }
-            selectiveBytes.clear();
-          }
 
-          selectiveBytes.add(chunk[i] == 254 ? '0' : '1');
+            selectiveBytes.add(chunk[i] == 254 ? '0' : '1');
+          }
         }
       }
     }
+
+    selectiveBytes.removeRange(0, Separator.getSeparatorInBytes().length);
 
     // Convert the selective bytes, which was previously an 8 bit binary string into decimal
     final List<int> convertedSelectiveBytes = <int>[];
