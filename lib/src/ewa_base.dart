@@ -100,6 +100,7 @@ class Ewa {
     final List<int> convertedEncryptedData = List<int>.from(encryptedData);
 
     // Insert bytes separator.
+    convertedEncryptedData.insertAll(0, Separator.getSeparatorInBytes());
     convertedEncryptedData.addAll(Separator.getSeparatorInBytes());
 
     // To convert data into 8 bit binary.
@@ -110,8 +111,6 @@ class Ewa {
 
     // Change data 8 bit binary to one string.
     final String paddedDataString = paddedData.join('');
-
-    print(paddedDataString);
 
     // Embed data to audio cover.
     final File embeddedSong = await eas.embed(audioCover: audioCover , dataToHide: paddedDataString);
@@ -136,35 +135,33 @@ class Ewa {
     // Extract data from audio cover.
     final List<int> extractedData = await eas.extract(audioCover);
 
-    return extractedData;
+    final int separatorIndex = Separator.getSeparatorIndex(extractedData);
 
-    // final int separatorIndex = Separator.getSeparatorIndex(extractedData);
+    // If data not found in audio cover, throw an error.
+    if (separatorIndex < 0) throw Exception('Data not found within the audio cover');
 
-    // // If data not found in audio cover, throw an error.
-    // if (separatorIndex < 0) throw Exception('Data not found within the audio cover');
+    // Separate data bytes from the byes that are not part of the data.
+    final List<int> separatedExtractData = Separator.separateBytesData(extractedData, separatorIndex);
 
-    // // Separate data bytes from the byes that are not part of the data.
-    // final List<int> separatedExtractData = Separator.separateBytesData(extractedData, separatorIndex);
+    // Decrypt.
+    final List<int> decryptedData = aesCbc.decrypt(cipher: Uint8List.fromList(separatedExtractData), secretKey: secretKey, iv: iv);
 
-    // // Decrypt.
-    // final List<int> decryptedData = aesCbc.decrypt(cipher: Uint8List.fromList(separatedExtractData), secretKey: secretKey, iv: iv);
-
-    // // If there is an error in the process below, the most likely cause is an incorrect initialization vector,
-    // // resulting in random data from the decryption process.
-    // try {
-    //   // Decompress data.
-    //   final List<int> decompressedData = GzipCompression.decompress(decryptedData);
+    // If there is an error in the process below, the most likely cause is an incorrect initialization vector,
+    // resulting in random data from the decryption process.
+    try {
+      // Decompress data.
+      final List<int> decompressedData = GzipCompression.decompress(decryptedData);
   
-    //   final String fileExtensionAfterProcess = Separator.getFileExtension(decompressedData);
-    //   final List<int> fileBytesWithoutExtension = Separator.separateBytesDataFromExtension(decompressedData);
+      final String fileExtensionAfterProcess = Separator.getFileExtension(decompressedData);
+      final List<int> fileBytesWithoutExtension = Separator.separateBytesDataFromExtension(decompressedData);
       
-    //   // Create file with the specified path and the name formatted as WAV.
-    //   await File('${targetPath}result.$fileExtensionAfterProcess').writeAsBytes(fileBytesWithoutExtension);
+      // Create file with the specified path and the name formatted as WAV.
+      await File('${targetPath}result.$fileExtensionAfterProcess').writeAsBytes(fileBytesWithoutExtension);
       
-    //   return fileBytesWithoutExtension;
+      return fileBytesWithoutExtension;
 
-    // } on Exception {
-    //   throw Exception('Failed to get data, check the initialization vector');
-    // }
+    } on Exception {
+      throw Exception('Failed to get data, check the initialization vector');
+    }
   }
 }

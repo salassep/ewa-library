@@ -10,13 +10,35 @@ class Eas {
 
     await for (var chunk in file.openRead()) {
       for (var byte in chunk) {
-        if (byte >= 0) {
+        if (byte >= 254) {
           i++;
         }
       }
     }
 
     return i;    
+  }
+
+  Future<bool> isDataExist(File audioStego) async {
+    List<String> selectiveByte = <String>[];
+    String separator = Separator.getSeparatorInEightBitBinary().join();
+
+    await for (var chunk in audioStego.openRead()) {
+      for (var byte in chunk) {
+        if (selectiveByte.length == separator.length) {;
+          if (selectiveByte.join('') == separator) {
+            return true;
+          } else {
+            return false;
+          }
+        }
+        if (byte >= 254) {
+          selectiveByte.add(byte == 254 ? '0' : '1');
+        }
+      }
+    }
+
+    return false;
   }
 
   /// Embed data to audio cover
@@ -56,44 +78,46 @@ class Eas {
   /// Extract data from an audio
   Future<List<int>> extract(File audioCover) async {
 
+    if (!await isDataExist(audioCover)) {
+      throw Exception('Data not found within the audio cover');
+    }
+
     // Get selective bytes, and create an array from it, consisting of 8 characters per element
     List<String> selectiveBytes = <String>[];
-    List<int> separatorBytes = Separator.getSeparatorInBytes();
-    List<int> separatorBytesFind = [];
+    String separatorBytes = Separator.getSeparatorInEightBitBinary().join('');
+    bool separatorBytesFound = false;
 
     await for (var chunk in audioCover.openRead()){
-      if (separatorBytesFind.length == separatorBytes.length) {
+
+      if (separatorBytesFound){
         break;
       }
+
       for (var i = 0; i < chunk.length; i++) {
 
-        if (separatorBytes.contains(chunk[i])) {
-          separatorBytesFind.add(chunk[i]);
-        } else {
-          separatorBytesFind.clear();
-        }
-
-        if (separatorBytesFind.length == separatorBytes.length) {
-          break;
+        if (chunk[i] < 254) {
+          continue;
         }
 
         if (selectiveBytes.isNotEmpty && selectiveBytes[selectiveBytes.length - 1].length < 8) {
           if (chunk[i] == 254) {
             selectiveBytes[selectiveBytes.length - 1] += '0';
-          } else if (chunk[i] == 255) {
+          } else {
             selectiveBytes[selectiveBytes.length - 1] += '1';
           }
         } else {
-          if (chunk[i] == 254) {
-            selectiveBytes.add('0');
-          } else if (chunk[i] == 255) {
-            selectiveBytes.add('1');
+          if (selectiveBytes.join('').contains(separatorBytes)){
+            if (selectiveBytes.join('').length != separatorBytes.length) {
+              separatorBytesFound = true;
+              break;
+            }
+            selectiveBytes.clear();
           }
+
+          selectiveBytes.add(chunk[i] == 254 ? '0' : '1');
         }
       }
     }
-
-    print(selectiveBytes);
 
     // Convert the selective bytes, which was previously an 8 bit binary string into decimal
     final List<int> convertedSelectiveBytes = <int>[];

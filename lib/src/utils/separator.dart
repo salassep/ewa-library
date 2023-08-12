@@ -63,4 +63,13 @@ class Separator {
   /// Get the data bytes by separating them from the file extension.
   //  The data separator and the extension separator have different indexes.
   static List<int> separateBytesDataFromExtension(List<int> bytesData) => bytesData.sublist(getSeparatorIndex(bytesData) + separatorWord.length);
+
+  static List<String> getSeparatorInEightBitBinary() {
+    List<String> paddedData = <String>[];
+    for (var i in getSeparatorInBytes()) {
+      paddedData.add(i.toRadixString(2).padLeft(8, '0'));
+    }
+
+    return paddedData;
+  }
 }
