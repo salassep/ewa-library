@@ -103,9 +103,11 @@ class Eas {
               selectiveBytes[selectiveBytes.length - 1] += '1';
             }
           } else {
-            if (selectiveBytes.join('').lastIndexOf(separatorBytes) > 0){
-              separatorBytesFound = true;
-              break;
+            if (chunk[i] == chunk.length ~/ 2 || chunk[i] == chunk.length) {
+              if (selectiveBytes.join('').lastIndexOf(separatorBytes) > 0){
+                separatorBytesFound = true;
+                break;
+              }
             }
 
             selectiveBytes.add(chunk[i] == 254 ? '0' : '1');
