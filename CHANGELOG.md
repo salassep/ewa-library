@@ -9,3 +9,7 @@
 ## 1.1.1
 
 - Fix extract and decrypt return value
+
+## 2.0.0
+ 
+ - Updated audio cover processing to use `Stream` instead of `Uint8List` for improved memory efficiency.
