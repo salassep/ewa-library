@@ -120,7 +120,7 @@ class Ewa {
   }
 
   /// Extract data form audio cover, and decrypt it.
-  Future<List<int>> extractDecrypt({
+  Future<File> extractDecrypt({
     required File audioCover, 
     required String secretKey,
     required String iv,
@@ -156,10 +156,12 @@ class Ewa {
       final String fileExtensionAfterProcess = Separator.getFileExtension(decompressedData);
       final List<int> fileBytesWithoutExtension = Separator.separateBytesDataFromExtension(decompressedData);
       
-      // Create file with the specified path and the name formatted as WAV.
-      await File('${targetPath}result.$fileExtensionAfterProcess').writeAsBytes(fileBytesWithoutExtension);
+      // Create file with the specified path.
+      final File secretFile = File('${targetPath}result.$fileExtensionAfterProcess');
       
-      return fileBytesWithoutExtension;
+      await secretFile.writeAsBytes(fileBytesWithoutExtension);
+      
+      return secretFile;
 
     } on Exception {
       throw Exception('Failed to get data, check the initialization vector');

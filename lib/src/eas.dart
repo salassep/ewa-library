@@ -53,7 +53,7 @@ class Eas {
     // and if the data is 0, the selective bytes are set to 254.
     int dataToHideIndex = 0;
 
-    final outputFile = File('$targetPath/stego.wav');
+    final outputFile = File('${targetPath}stego.wav');
     var outputSink = outputFile.openWrite();
 
     await for (var chunk in audioCover.openRead()) {
@@ -103,7 +103,7 @@ class Eas {
               selectiveBytes[selectiveBytes.length - 1] += '1';
             }
           } else {
-            if (chunk[i] == chunk.length ~/ 2 || chunk[i] == chunk.length - 1) {
+            if (i == chunk.length ~/ 2 || i == chunk.length - 1) {
               if (selectiveBytes.join('').lastIndexOf(separatorBytes) > 0){
                 separatorBytesFound = true;
                 break;
