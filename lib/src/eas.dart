@@ -103,7 +103,7 @@ class Eas {
               selectiveBytes[selectiveBytes.length - 1] += '1';
             }
           } else {
-            if (chunk[i] == chunk.length ~/ 2 || chunk[i] == chunk.length) {
+            if (chunk[i] == chunk.length ~/ 2 || chunk[i] == chunk.length - 1) {
               if (selectiveBytes.join('').lastIndexOf(separatorBytes) > 0){
                 separatorBytesFound = true;
                 break;
